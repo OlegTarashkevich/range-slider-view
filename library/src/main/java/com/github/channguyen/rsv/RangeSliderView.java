@@ -395,8 +395,6 @@ public class RangeSliderView extends View {
         int half = (barHeight >> 1);
         int y = getPaddingTop() + (h >> 1);
         for (int i = 1; i < rangeCount - 1; ++i) {
-//            canvas.drawCircle(slotPositions[i], y, slotRadius, paint);
-
             canvas.drawRect(slotPositions[i], y - half, slotPositions[i] + 1, y + half, paint);
         }
     }
@@ -407,10 +405,33 @@ public class RangeSliderView extends View {
         int half = (barHeight >> 1);
         int y = getPaddingTop() + (h >> 1);
 
-//        canvas.drawRect(from, y - half, to, y + half, paint);
-
         Path path = RoundedRect(from, y - half, to, y + half, barHeight / 2, barHeight / 2, true, true, true, true);
         canvas.drawPath(path, paint);
+    }
+
+    private void drawSlider(Canvas canvas, int y0) {
+        paint.setColor(sliderColor);
+        canvas.drawCircle(currentSlidingX, y0, radius, paint);
+
+        paint.setColor(Color.WHITE);
+        int h = getHeightWithPadding();
+        int half = (barHeight >> 1);
+        int y = getPaddingTop() + (h >> 1);
+
+        float delta = radius / 10;
+
+        float x1 = currentSlidingX - delta * 4;
+        float x2 = x1 + delta/2;
+        canvas.drawRect(x1, y - half, x2, y + half, paint);
+
+        x1 = currentSlidingX;
+        x2 = x1 + delta/2;
+        canvas.drawRect(x1, y - half, x2, y + half, paint);
+
+        x1 = currentSlidingX + delta * 4;
+        x2 = x1 + delta/2;
+        canvas.drawRect(x1, y - half, x2, y + half, paint);
+
     }
 
     @Override
@@ -419,21 +440,15 @@ public class RangeSliderView extends View {
         int w = getWidthWithPadding();
         int h = getHeightWithPadding();
         int spacing = w / rangeCount;
-        int border = (spacing >> 1);
-        int x0 = getPaddingLeft() + border;
         int y0 = getPaddingTop() + (h >> 1);
 
         /** Draw empty bar */
         drawBar(canvas, (int) slotPositions[0], (int) slotPositions[rangeCount - 1], emptyColor);
 
-        /** Draw filled bar */
-//        drawBar(canvas, x0, (int) currentSlidingX, filledColor);
-
         drawFilledSlots(canvas);
 
         /** Draw the selected range circle */
-        paint.setColor(sliderColor);
-        canvas.drawCircle(currentSlidingX, y0, radius, paint);
+        drawSlider(canvas, y0);
     }
 
     @Override
