@@ -31,7 +31,10 @@ public class MainActivity extends AppCompatActivity {
     largeSlider.setEmptyColor(Color.parseColor("#f2f2f2"));
     largeSlider.setLinesColor(Color.parseColor("#c1c1c1"));
     largeSlider.setSliderColor(Color.parseColor("#5986e5"));
-    largeSlider.setInitialIndex(1);
+
+    largeSlider.setInitialIndex(2);
+    largeSlider.setLeftRange(1);
+    largeSlider.setRightRange(3);
 
   }
 }

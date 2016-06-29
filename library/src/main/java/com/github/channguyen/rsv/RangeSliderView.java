@@ -49,6 +49,10 @@ public class RangeSliderView extends View {
 
     private int currentIndex;
 
+    private int leftRange = 0;
+
+    private int rightRange;
+
     private float currentSlidingX;
 
     private float currentSlidingY;
@@ -171,7 +175,15 @@ public class RangeSliderView extends View {
         if (rangeCount < 2) {
             throw new IllegalArgumentException("rangeCount must be >= 2");
         }
-        this.rangeCount = rangeCount;
+        this.rangeCount = rightRange = rangeCount;
+    }
+
+    public void setLeftRange(int leftRange) {
+        this.leftRange = leftRange;
+    }
+
+    public void setRightRange(int rightRange) {
+        this.rightRange = rightRange;
     }
 
     public float getBarHeightPercent() {
@@ -258,6 +270,10 @@ public class RangeSliderView extends View {
         invalidate();
     }
 
+    public int getCurrentIndex() {
+        return currentIndex;
+    }
+
     public int getEmptyColor() {
         return emptyColor;
     }
@@ -335,7 +351,7 @@ public class RangeSliderView extends View {
         float min = Float.MAX_VALUE;
         int j = 0;
         /** Find the closest to x */
-        for (int i = 1; i < rangeCount - 1; ++i) {
+        for (int i = leftRange; i < rightRange; ++i) {
             float dx = Math.abs(currentSlidingX - slotPositions[i]);
             if (dx < min) {
                 min = dx;
