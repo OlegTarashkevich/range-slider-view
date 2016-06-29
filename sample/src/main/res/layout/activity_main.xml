@@ -9,11 +9,15 @@
 
   <com.github.channguyen.rsv.RangeSliderView
       android:id="@+id/rsv_large"
-      android:layout_margin="50dp"
+      android:layout_marginTop="50dp"
+      android:layout_marginLeft="10dp"
+      android:layout_marginRight="10dp"
       android:layout_width="match_parent"
       android:layout_height="40dp"
       rsv:filledColor="#FF6600"
-      rsv:rangeCount="10"
+      rsv:rangeCount="7"
+      rsv:sliderRadiusPercent="0.4"
+      rsv:barHeightPercent="0.4"
       />
 
 </LinearLayout>

@@ -28,10 +28,10 @@ public class MainActivity extends AppCompatActivity {
     };
     largeSlider.setOnSlideListener(listener);
 
-    largeSlider.setEmptyColor(Color.GREEN);
+    largeSlider.setEmptyColor(Color.parseColor("#f2f2f2"));
+    largeSlider.setLinesColor(Color.parseColor("#c1c1c1"));
+    largeSlider.setSliderColor(Color.parseColor("#5986e5"));
     largeSlider.setInitialIndex(1);
-    largeSlider.setRangeCount(7);
-    largeSlider.setBarHeightPercent(.4f);
 
   }
 }
