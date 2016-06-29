@@ -2,22 +2,23 @@ package com.github.channguyen.rsv;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.*;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.ViewTreeObserver;
-
-import java.util.concurrent.TimeUnit;
 
 public class RangeSliderView extends View {
 
     private static final String TAG = RangeSliderView.class.getSimpleName();
-
-    private static final long RIPPLE_ANIMATION_DURATION_MS = TimeUnit.MILLISECONDS.toMillis(700);
 
     private static final int DEFAULT_PAINT_STROKE_WIDTH = 1;
 
@@ -105,6 +106,7 @@ public class RangeSliderView extends View {
 
     public RangeSliderView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+
         if (attrs != null) {
             TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RangeSliderView);
             TypedArray sa = context.obtainStyledAttributes(attrs, new int[]{android.R.attr.layout_height});
@@ -139,6 +141,11 @@ public class RangeSliderView extends View {
         this.setLayerType(LAYER_TYPE_SOFTWARE, shadowBorderPaint);
         changeShadow(0.0f, 3.0f);
 
+        reload();
+        currentIndex = 0;
+    }
+
+    private void reload(){
         getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
@@ -154,7 +161,13 @@ public class RangeSliderView extends View {
                 return true;
             }
         });
-        currentIndex = 0;
+    }
+
+    @Override
+    public void setVisibility(int visibility) {
+        reload();
+//        invalidate();
+        super.setVisibility(visibility);
     }
 
     public void changeShadow(float dx, float dy) {
@@ -380,6 +393,7 @@ public class RangeSliderView extends View {
         float x = event.getX();
 
         final int action = event.getActionMasked();
+        ViewParent viewParent = getParent();
 
         switch (action) {
 
@@ -389,7 +403,12 @@ public class RangeSliderView extends View {
                 downY = y;
                 break;
 
+            case MotionEvent.ACTION_CANCEL:
+                viewParent.requestDisallowInterceptTouchEvent(false);
+                break;
+
             case MotionEvent.ACTION_MOVE:
+                viewParent.requestDisallowInterceptTouchEvent(true);
                 if (gotSlot) {
                     if (x >= slotPositions[0] && x <= slotPositions[rangeCount - 1]) {
                         currentSlidingX = x;
@@ -408,6 +427,7 @@ public class RangeSliderView extends View {
                 }
                 break;
         }
+        Log.d(TAG, "action: " + action);
         return true;
     }
 
@@ -461,31 +481,27 @@ public class RangeSliderView extends View {
 
         float delta = radius / 10;
 
-        float x1 = currentSlidingX - delta * 4;
-        float x2 = x1 + delta;
-        canvas.drawLine(x1, y - half, x1, y + half, sliderLinesPaint);
+        float x = currentSlidingX - delta * 4;
+        canvas.drawLine(x, y - half, x, y + half, sliderLinesPaint);
 
-        x1 = currentSlidingX;
-        x2 = x1 + delta;
-        canvas.drawLine(x1, y - half, x1, y + half, sliderLinesPaint);
+        x = currentSlidingX;
+        canvas.drawLine(x, y - half, x, y + half, sliderLinesPaint);
 
-        x1 = currentSlidingX + delta * 4;
-        x2 = x1 + delta;
-        canvas.drawLine(x1, y - half, x1, y + half, sliderLinesPaint);
+        x = currentSlidingX + delta * 4;
+        canvas.drawLine(x, y - half, x, y + half, sliderLinesPaint);
 
     }
 
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        int w = getWidthWithPadding();
         int h = getHeightWithPadding();
-        int spacing = w / rangeCount;
         int y0 = getPaddingTop() + (h >> 1);
 
         /** Draw empty bar */
         drawBar(canvas, (int) slotPositions[0], (int) slotPositions[rangeCount - 1], emptyColor);
 
+        /** Draw lines */
         drawFilledSlots(canvas);
 
         /** Draw the selected range circle */
@@ -530,8 +546,8 @@ public class RangeSliderView extends View {
         }
 
         //required field that makes Parcelables from a Parcel
-        public static final Parcelable.Creator<SavedState> CREATOR =
-                new Parcelable.Creator<SavedState>() {
+        public static final Creator<SavedState> CREATOR =
+                new Creator<SavedState>() {
                     public SavedState createFromParcel(Parcel in) {
                         return new SavedState(in);
                     }
