@@ -38,6 +38,8 @@ public class RangeSliderView extends View {
 
     private static final int DEFAULT_HEIGHT_IN_DP = 50;
 
+    private Paint shadowPaintBorder = new Paint(Paint.ANTI_ALIAS_FLAG);
+
     protected Paint paint;
 
     protected float radius;
@@ -86,6 +88,8 @@ public class RangeSliderView extends View {
 
     private int layoutHeight;
 
+    private float density;
+
     public RangeSliderView(Context context) {
         this(context, null);
     }
@@ -113,6 +117,8 @@ public class RangeSliderView extends View {
             }
         }
 
+        density = getResources().getDisplayMetrics().density;
+
         setBarHeightPercent(barHeightPercent);
         setRangeCount(rangeCount);
         setSlotRadiusPercent(slotRadiusPercent);
@@ -122,6 +128,9 @@ public class RangeSliderView extends View {
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStrokeWidth(DEFAULT_PAINT_STROKE_WIDTH);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        this.setLayerType(LAYER_TYPE_SOFTWARE, shadowPaintBorder);
+        changeShadow(0.0f, 3.0f);
 
         getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
@@ -139,6 +148,10 @@ public class RangeSliderView extends View {
             }
         });
         currentIndex = 0;
+    }
+
+    public void changeShadow(float dx, float dy) {
+        shadowPaintBorder.setShadowLayer(radius + 3.0f * density, dx * density, dy * density, Color.GRAY);
     }
 
     private void updateRadius(int height) {
@@ -410,6 +423,11 @@ public class RangeSliderView extends View {
     }
 
     private void drawSlider(Canvas canvas, int y0) {
+
+        // draw shadow
+        canvas.drawCircle(currentSlidingX, y0, radius, shadowPaintBorder);
+
+        // draw slider
         paint.setColor(sliderColor);
         canvas.drawCircle(currentSlidingX, y0, radius, paint);
 
@@ -421,15 +439,15 @@ public class RangeSliderView extends View {
         float delta = radius / 10;
 
         float x1 = currentSlidingX - delta * 4;
-        float x2 = x1 + delta/2;
+        float x2 = x1 + delta / 2;
         canvas.drawRect(x1, y - half, x2, y + half, paint);
 
         x1 = currentSlidingX;
-        x2 = x1 + delta/2;
+        x2 = x1 + delta / 2;
         canvas.drawRect(x1, y - half, x2, y + half, paint);
 
         x1 = currentSlidingX + delta * 4;
-        x2 = x1 + delta/2;
+        x2 = x1 + delta / 2;
         canvas.drawRect(x1, y - half, x2, y + half, paint);
 
     }
@@ -587,4 +605,5 @@ public class RangeSliderView extends View {
 
         return path;
     }
+
 }
