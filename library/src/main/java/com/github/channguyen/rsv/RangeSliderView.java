@@ -40,8 +40,6 @@ public class RangeSliderView extends View {
 
   protected Paint paint;
 
-  protected Paint ripplePaint;
-
   protected float radius;
 
   protected float slotRadius;
@@ -60,8 +58,6 @@ public class RangeSliderView extends View {
 
   private float[] slotPositions;
 
-  private int filledColor = DEFAULT_FILLED_COLOR;
-
   private int emptyColor = DEFAULT_EMPTY_COLOR;
 
   private float barHeightPercent = DEFAULT_BAR_HEIGHT_PERCENT;
@@ -71,8 +67,6 @@ public class RangeSliderView extends View {
   private int barHeight;
 
   private OnSlideListener listener;
-
-  private float rippleRadius = 0.0f;
 
   private float downX;
 
@@ -102,22 +96,13 @@ public class RangeSliderView extends View {
       TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RangeSliderView);
       TypedArray sa = context.obtainStyledAttributes(attrs, new int[]{android.R.attr.layout_height});
       try {
-        layoutHeight = sa.getLayoutDimension(
-          0, ViewGroup.LayoutParams.WRAP_CONTENT);
-        rangeCount = a.getInt(
-          R.styleable.RangeSliderView_rangeCount, DEFAULT_RANGE_COUNT);
-        filledColor = a.getColor(
-          R.styleable.RangeSliderView_filledColor, DEFAULT_FILLED_COLOR);
-        emptyColor = a.getColor(
-          R.styleable.RangeSliderView_emptyColor, DEFAULT_EMPTY_COLOR);
-        barHeightPercent = a.getFloat(
-          R.styleable.RangeSliderView_barHeightPercent, DEFAULT_BAR_HEIGHT_PERCENT);
-        barHeightPercent = a.getFloat(
-          R.styleable.RangeSliderView_barHeightPercent, DEFAULT_BAR_HEIGHT_PERCENT);
-        slotRadiusPercent = a.getFloat(
-          R.styleable.RangeSliderView_slotRadiusPercent, DEFAULT_SLOT_RADIUS_PERCENT);
-        sliderRadiusPercent = a.getFloat(
-          R.styleable.RangeSliderView_sliderRadiusPercent, DEFAULT_SLIDER_RADIUS_PERCENT);
+        layoutHeight = sa.getLayoutDimension(0, ViewGroup.LayoutParams.WRAP_CONTENT);
+        rangeCount = a.getInt(R.styleable.RangeSliderView_rangeCount, DEFAULT_RANGE_COUNT);
+        emptyColor = a.getColor(R.styleable.RangeSliderView_emptyColor, DEFAULT_EMPTY_COLOR);
+        barHeightPercent = a.getFloat(R.styleable.RangeSliderView_barHeightPercent, DEFAULT_BAR_HEIGHT_PERCENT);
+        barHeightPercent = a.getFloat(R.styleable.RangeSliderView_barHeightPercent, DEFAULT_BAR_HEIGHT_PERCENT);
+        slotRadiusPercent = a.getFloat(R.styleable.RangeSliderView_slotRadiusPercent, DEFAULT_SLOT_RADIUS_PERCENT);
+        sliderRadiusPercent = a.getFloat(R.styleable.RangeSliderView_sliderRadiusPercent, DEFAULT_SLIDER_RADIUS_PERCENT);
       } finally {
         a.recycle();
         sa.recycle();
@@ -133,10 +118,6 @@ public class RangeSliderView extends View {
     paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     paint.setStrokeWidth(DEFAULT_PAINT_STROKE_WIDTH);
     paint.setStyle(Paint.Style.FILL_AND_STROKE);
-
-    ripplePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    ripplePaint.setStrokeWidth(2.0f);
-    ripplePaint.setStyle(Paint.Style.FILL_AND_STROKE);
 
     getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
       @Override
@@ -206,23 +187,6 @@ public class RangeSliderView extends View {
     this.sliderRadiusPercent = percent;
   }
 
-  @AnimateMethod
-  public void setRadius(final float radius) {
-    rippleRadius = radius;
-    if (rippleRadius > 0) {
-      RadialGradient radialGradient = new RadialGradient(
-        downX,
-        downY,
-        rippleRadius * 3,
-        Color.TRANSPARENT,
-        Color.BLACK,
-        Shader.TileMode.MIRROR
-      );
-      ripplePaint.setShader(radialGradient);
-    }
-    invalidate();
-  }
-
   public void setOnSlideListener(OnSlideListener listener) {
     this.listener = listener;
   }
@@ -271,15 +235,6 @@ public class RangeSliderView extends View {
     }
     currentIndex = index;
     currentSlidingX = selectedSlotX = slotPositions[currentIndex];
-    invalidate();
-  }
-
-  public int getFilledColor() {
-    return filledColor;
-  }
-
-  public void setFilledColor(int filledColor) {
-    this.filledColor = filledColor;
     invalidate();
   }
 
@@ -370,36 +325,7 @@ public class RangeSliderView extends View {
     selectedSlotX = currentSlidingX;
     downX = currentSlidingX;
     downY = currentSlidingY;
-    animateRipple();
     invalidate();
-  }
-
-  private void animateRipple() {
-    ObjectAnimator animator = ObjectAnimator.ofFloat(this, "radius", 0, radius);
-    animator.setInterpolator(new AccelerateInterpolator());
-    animator.setDuration(RIPPLE_ANIMATION_DURATION_MS);
-    animator.start();
-    animator.addListener(new Animator.AnimatorListener() {
-      @Override
-      public void onAnimationStart(Animator animation) {
-
-      }
-
-      @Override
-      public void onAnimationEnd(Animator animation) {
-        rippleRadius = 0;
-      }
-
-      @Override
-      public void onAnimationCancel(Animator animation) {
-
-      }
-
-      @Override
-      public void onAnimationRepeat(Animator animation) {
-
-      }
-    });
   }
 
   @Override
@@ -438,17 +364,8 @@ public class RangeSliderView extends View {
 
   private boolean isInSelectedSlot(float x, float y) {
     return
-      selectedSlotX - radius <= x && x <= selectedSlotX + radius &&
-        selectedSlotY - radius <= y && y <= selectedSlotY + radius;
-  }
-
-  private void drawEmptySlots(Canvas canvas) {
-    paint.setColor(emptyColor);
-    int h = getHeightWithPadding();
-    int y = getPaddingTop() + (h >> 1);
-    for (int i = 0; i < rangeCount; ++i) {
-      canvas.drawCircle(slotPositions[i], y, slotRadius, paint);
-    }
+            selectedSlotX - radius <= x && x <= selectedSlotX + radius &&
+                    selectedSlotY - radius <= y && y <= selectedSlotY + radius;
   }
 
   public int getHeightWithPadding() {
@@ -460,13 +377,14 @@ public class RangeSliderView extends View {
   }
 
   private void drawFilledSlots(Canvas canvas) {
-    paint.setColor(filledColor);
+    paint.setColor(Color.WHITE);
     int h = getHeightWithPadding();
+    int half = (barHeight >> 1);
     int y = getPaddingTop() + (h >> 1);
-    for (int i = 0; i < rangeCount; ++i) {
-      if (slotPositions[i] <= currentSlidingX) {
-        canvas.drawCircle(slotPositions[i], y, slotRadius, paint);
-      }
+    for (int i = 1; i < rangeCount-1; ++i) {
+//            canvas.drawCircle(slotPositions[i], y, slotRadius, paint);
+
+      canvas.drawRect(slotPositions[i] - 1, y - half, slotPositions[i] + 1, y + half, paint);
     }
   }
 
@@ -475,22 +393,11 @@ public class RangeSliderView extends View {
     int h = getHeightWithPadding();
     int half = (barHeight >> 1);
     int y = getPaddingTop() + (h >> 1);
-    canvas.drawRect(from, y - half, to, y + half, paint);
-  }
 
-  private void drawRippleEffect(Canvas canvas) {
-    if (rippleRadius != 0) {
-      canvas.save();
-      ripplePaint.setColor(Color.GRAY);
-      outerPath.reset();
-      outerPath.addCircle(downX, downY, rippleRadius, Path.Direction.CW);
-      canvas.clipPath(outerPath);
-      innerPath.reset();
-      innerPath.addCircle(downX, downY, rippleRadius / 3, Path.Direction.CW);
-      canvas.clipPath(innerPath, Region.Op.DIFFERENCE);
-      canvas.drawCircle(downX, downY, rippleRadius, ripplePaint);
-      canvas.restore();
-    }
+//        canvas.drawRect(from, y - half, to, y + half, paint);
+
+    Path path = RoundedRect(from, y - half, to, y + half, barHeight/2, barHeight/2, true, true, true, true);
+    canvas.drawPath(path, paint);
   }
 
   @Override
@@ -502,19 +409,18 @@ public class RangeSliderView extends View {
     int border = (spacing >> 1);
     int x0 = getPaddingLeft() + border;
     int y0 = getPaddingTop() + (h >> 1);
-    drawEmptySlots(canvas);
-    drawFilledSlots(canvas);
 
     /** Draw empty bar */
     drawBar(canvas, (int) slotPositions[0], (int) slotPositions[rangeCount - 1], emptyColor);
 
     /** Draw filled bar */
-    drawBar(canvas, x0, (int) currentSlidingX, filledColor);
+//        drawBar(canvas, x0, (int) currentSlidingX, filledColor);
+
+    drawFilledSlots(canvas);
 
     /** Draw the selected range circle */
-    paint.setColor(filledColor);
+    paint.setColor(Color.BLUE);
     canvas.drawCircle(currentSlidingX, y0, radius, paint);
-    drawRippleEffect(canvas);
   }
 
   @Override
@@ -556,35 +462,37 @@ public class RangeSliderView extends View {
 
     //required field that makes Parcelables from a Parcel
     public static final Parcelable.Creator<SavedState> CREATOR =
-      new Parcelable.Creator<SavedState>() {
-        public SavedState createFromParcel(Parcel in) {
-          return new SavedState(in);
-        }
+            new Parcelable.Creator<SavedState>() {
+              public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+              }
 
-        public SavedState[] newArray(int size) {
-          return new SavedState[size];
-        }
-      };
+              public SavedState[] newArray(int size) {
+                return new SavedState[size];
+              }
+            };
   }
 
   /**
    * Helper method to convert pixel to dp
+   *
    * @param context
    * @param px
    * @return
    */
   static int pxToDp(final Context context, final float px) {
-    return (int)(px / context.getResources().getDisplayMetrics().density);
+    return (int) (px / context.getResources().getDisplayMetrics().density);
   }
 
   /**
    * Helper method to convert dp to pixel
+   *
    * @param context
    * @param dp
    * @return
    */
   static int dpToPx(final Context context, final float dp) {
-    return (int)(dp * context.getResources().getDisplayMetrics().density);
+    return (int) (dp * context.getResources().getDisplayMetrics().density);
   }
 
   /**
@@ -598,5 +506,57 @@ public class RangeSliderView extends View {
      * @param index The index value of range count [0, rangeCount - 1]
      */
     void onSlide(int index);
+  }
+
+  public static Path RoundedRect(
+          float left, float top, float right, float bottom, float rx, float ry,
+          boolean tl, boolean tr, boolean br, boolean bl
+  ) {
+    Path path = new Path();
+    if (rx < 0) rx = 0;
+    if (ry < 0) ry = 0;
+    float width = right - left;
+    float height = bottom - top;
+    if (rx > width / 2) rx = width / 2;
+    if (ry > height / 2) ry = height / 2;
+    float widthMinusCorners = (width - (2 * rx));
+    float heightMinusCorners = (height - (2 * ry));
+
+    path.moveTo(right, top + ry);
+    if (tr)
+      path.rQuadTo(0, -ry, -rx, -ry);//top-right corner
+    else {
+      path.rLineTo(0, -ry);
+      path.rLineTo(-rx, 0);
+    }
+    path.rLineTo(-widthMinusCorners, 0);
+    if (tl)
+      path.rQuadTo(-rx, 0, -rx, ry); //top-left corner
+    else {
+      path.rLineTo(-rx, 0);
+      path.rLineTo(0, ry);
+    }
+    path.rLineTo(0, heightMinusCorners);
+
+    if (bl)
+      path.rQuadTo(0, ry, rx, ry);//bottom-left corner
+    else {
+      path.rLineTo(0, ry);
+      path.rLineTo(rx, 0);
+    }
+
+    path.rLineTo(widthMinusCorners, 0);
+    if (br)
+      path.rQuadTo(rx, 0, rx, -ry); //bottom-right corner
+    else {
+      path.rLineTo(rx, 0);
+      path.rLineTo(0, -ry);
+    }
+
+    path.rLineTo(0, -heightMinusCorners);
+
+    path.close();//Given close, last lineto can be removed.
+
+    return path;
   }
 }
