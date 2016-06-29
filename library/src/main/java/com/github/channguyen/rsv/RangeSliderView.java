@@ -1,7 +1,5 @@
 package com.github.channguyen.rsv;
 
-import android.animation.Animator;
-import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.*;
@@ -12,7 +10,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.animation.AccelerateInterpolator;
 
 import java.util.concurrent.TimeUnit;
 
@@ -22,7 +19,9 @@ public class RangeSliderView extends View {
 
     private static final long RIPPLE_ANIMATION_DURATION_MS = TimeUnit.MILLISECONDS.toMillis(700);
 
-    private static final int DEFAULT_PAINT_STROKE_WIDTH = 5;
+    private static final int DEFAULT_PAINT_STROKE_WIDTH = 1;
+
+    private static final int DEFAULT_PAINT_LINES_STROKE_WIDTH = 2;
 
     private static final int DEFAULT_FILLED_COLOR = Color.parseColor("#FFA500");
 
@@ -38,9 +37,11 @@ public class RangeSliderView extends View {
 
     private static final int DEFAULT_HEIGHT_IN_DP = 50;
 
-    private Paint shadowPaintBorder = new Paint(Paint.ANTI_ALIAS_FLAG);
+    protected Paint shadowBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    protected Paint paint;
+    protected Paint sliderLinesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    protected Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     protected float radius;
 
@@ -125,11 +126,13 @@ public class RangeSliderView extends View {
         setSliderRadiusPercent(sliderRadiusPercent);
 
         slotPositions = new float[rangeCount];
-        paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStrokeWidth(DEFAULT_PAINT_STROKE_WIDTH);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
 
-        this.setLayerType(LAYER_TYPE_SOFTWARE, shadowPaintBorder);
+        sliderLinesPaint.setStrokeWidth(DEFAULT_PAINT_LINES_STROKE_WIDTH * density);
+        sliderLinesPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        this.setLayerType(LAYER_TYPE_SOFTWARE, shadowBorderPaint);
         changeShadow(0.0f, 3.0f);
 
         getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
@@ -151,7 +154,7 @@ public class RangeSliderView extends View {
     }
 
     public void changeShadow(float dx, float dy) {
-        shadowPaintBorder.setShadowLayer(radius + 3.0f * density, dx * density, dy * density, Color.GRAY);
+        shadowBorderPaint.setShadowLayer(radius + 3.0f * density, dx * density, dy * density, Color.GRAY);
     }
 
     private void updateRadius(int height) {
@@ -332,7 +335,7 @@ public class RangeSliderView extends View {
         float min = Float.MAX_VALUE;
         int j = 0;
         /** Find the closest to x */
-        for (int i = 0; i < rangeCount; ++i) {
+        for (int i = 1; i < rangeCount - 1; ++i) {
             float dx = Math.abs(currentSlidingX - slotPositions[i]);
             if (dx < min) {
                 min = dx;
@@ -356,10 +359,14 @@ public class RangeSliderView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
         float y = event.getY();
         float x = event.getX();
+
         final int action = event.getActionMasked();
+
         switch (action) {
+
             case MotionEvent.ACTION_DOWN:
                 gotSlot = isInSelectedSlot(x, y);
                 downX = x;
@@ -408,7 +415,7 @@ public class RangeSliderView extends View {
         int half = (barHeight >> 1);
         int y = getPaddingTop() + (h >> 1);
         for (int i = 1; i < rangeCount - 1; ++i) {
-            canvas.drawRect(slotPositions[i], y - half, slotPositions[i] + 1, y + half, paint);
+            canvas.drawLine(slotPositions[i], y - half, slotPositions[i] + 1, y + half, paint);
         }
     }
 
@@ -425,13 +432,13 @@ public class RangeSliderView extends View {
     private void drawSlider(Canvas canvas, int y0) {
 
         // draw shadow
-        canvas.drawCircle(currentSlidingX, y0, radius, shadowPaintBorder);
+        canvas.drawCircle(currentSlidingX, y0, radius, shadowBorderPaint);
 
         // draw slider
         paint.setColor(sliderColor);
         canvas.drawCircle(currentSlidingX, y0, radius, paint);
 
-        paint.setColor(Color.WHITE);
+        sliderLinesPaint.setColor(Color.WHITE);
         int h = getHeightWithPadding();
         int half = (barHeight >> 1);
         int y = getPaddingTop() + (h >> 1);
@@ -439,16 +446,16 @@ public class RangeSliderView extends View {
         float delta = radius / 10;
 
         float x1 = currentSlidingX - delta * 4;
-        float x2 = x1 + delta / 2;
-        canvas.drawRect(x1, y - half, x2, y + half, paint);
+        float x2 = x1 + delta;
+        canvas.drawLine(x1, y - half, x1, y + half, sliderLinesPaint);
 
         x1 = currentSlidingX;
-        x2 = x1 + delta / 2;
-        canvas.drawRect(x1, y - half, x2, y + half, paint);
+        x2 = x1 + delta;
+        canvas.drawLine(x1, y - half, x1, y + half, sliderLinesPaint);
 
         x1 = currentSlidingX + delta * 4;
-        x2 = x1 + delta / 2;
-        canvas.drawRect(x1, y - half, x2, y + half, paint);
+        x2 = x1 + delta;
+        canvas.drawLine(x1, y - half, x1, y + half, sliderLinesPaint);
 
     }
 
