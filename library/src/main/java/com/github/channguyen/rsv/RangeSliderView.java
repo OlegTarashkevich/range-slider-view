@@ -145,7 +145,7 @@ public class RangeSliderView extends View {
         currentIndex = 0;
     }
 
-    private void reload(){
+    private void reload() {
         getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
@@ -398,9 +398,16 @@ public class RangeSliderView extends View {
         switch (action) {
 
             case MotionEvent.ACTION_DOWN:
+                viewParent.requestDisallowInterceptTouchEvent(true);
                 gotSlot = isInSelectedSlot(x, y);
                 downX = x;
                 downY = y;
+
+                if (x >= slotPositions[0] && x <= slotPositions[rangeCount - 1]) {
+                    currentSlidingX = x;
+                    currentSlidingY = y;
+                    invalidate();
+                }
                 break;
 
             case MotionEvent.ACTION_CANCEL:
@@ -408,23 +415,19 @@ public class RangeSliderView extends View {
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                viewParent.requestDisallowInterceptTouchEvent(true);
-                if (gotSlot) {
-                    if (x >= slotPositions[0] && x <= slotPositions[rangeCount - 1]) {
-                        currentSlidingX = x;
-                        currentSlidingY = y;
-                        invalidate();
-                    }
+                if (x >= slotPositions[0] && x <= slotPositions[rangeCount - 1]) {
+                    currentSlidingX = x;
+                    currentSlidingY = y;
+                    invalidate();
                 }
                 break;
 
             case MotionEvent.ACTION_UP:
-                if (gotSlot) {
-                    gotSlot = false;
-                    currentSlidingX = x;
-                    currentSlidingY = y;
-                    updateCurrentIndex();
-                }
+                viewParent.requestDisallowInterceptTouchEvent(false);
+                gotSlot = false;
+                currentSlidingX = x;
+                currentSlidingY = y;
+                updateCurrentIndex();
                 break;
         }
         Log.d(TAG, "action: " + action);
